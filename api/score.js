@@ -1,4 +1,4 @@
-import { sql, UUID, PERSONAGENS, MAX_PONTOS, cleanName, position } from './_db.js';
+import { sql, UUID, PERSONAGENS, MAX_PONTOS, cleanName, position, nameTaken } from './_db.js';
 
 // saves a run; the table keeps only each device's best score
 export default async function handler(req, res) {
@@ -19,6 +19,7 @@ export default async function handler(req, res) {
   if (!Number.isInteger(fase) || fase < 1 || fase > 1000) return res.status(400).json({ error: 'Fase inválida.' });
 
   try {
+    if (await nameTaken(nome, device)) return res.status(409).json({ error: 'nome_em_uso', nome });
     const [row] = await sql`
       INSERT INTO barquinho_ranking (device_id, nome, personagem, pontos, fase)
       VALUES (${device}, ${nome}, ${personagem}, ${pontos}, ${fase})

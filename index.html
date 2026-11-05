@@ -750,7 +750,11 @@ function reset() {
   stageNo = 0; prevStage = 0; trans = 1; bolt = null; lightT = 3; sentM = 0; showStage();
 }
 function start() {
-  if (rankOn && !playerName && !commitName()) { askName(true); return; }
+  if (rankOn && !playerName) {
+    if ($('#nomeIn').value.trim()) commitName().then(ok => { if (ok) start(); else pendingStart = true; });
+    else askName(true);
+    return;
+  }
   audio(); reset(); state = 'play'; sfx.start();
   $('#menu').hidden = true; $('#over').hidden = true; $('#hud').hidden = false;
   $('#hudName').textContent = CHARS[charIdx].name;
@@ -836,7 +840,15 @@ function die() {
     line.innerHTML = ''; line.append('Você está em ');
     const b = document.createElement('b'); b.textContent = r.pos + 'º lugar'; line.append(b, ' no ranking.');
     line.hidden = false;
-  }).catch(() => { line.textContent = 'Não deu para salvar no ranking agora. Sua próxima viagem tenta de novo.'; line.hidden = false; });
+  }).catch(err => {
+    if (err.message === 'nome_em_uso') {
+      const n = playerName;
+      pendingScore = { m, fase: stageNo + 1 };
+      playerName = ''; store.set('bq_nome', ''); refreshWho();
+      line.textContent = `O nome ${n} já é de outra pessoa no ranking. Toque em "De novo" e escolha outro nome: esta viagem entra no ranking com ele.`;
+    } else line.textContent = 'Não deu para salvar no ranking agora. Sua próxima viagem tenta de novo.';
+    line.hidden = false;
+  });
 }
 
 /* ---------- update ---------- */
@@ -1127,17 +1139,17 @@ const device = (() => {
   }
   return id;
 })();
-let playerName = String(store.get('bq_nome', '') || ''), rankOn = false, sentM = 0, rankFrom = 'menu', pendingStart = false;
+let playerName = String(store.get('bq_nome', '') || ''), rankOn = false, sentM = 0, rankFrom = 'menu', pendingStart = false, pendingScore = null;
 async function api(path, opts) {
   const r = await fetch(path, opts);
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(d.error || 'erro');
   return d;
 }
-function sendScore(m, beacon) {
+function sendScore(m, beacon, fase = stageNo + 1) {
   if (!rankOn || !playerName || m <= 0 || god) return Promise.resolve(null);
   sentM = Math.max(sentM, m);
-  const body = JSON.stringify({ device, nome: playerName, personagem: CHARS[charIdx].file, pontos: m, fase: stageNo + 1 });
+  const body = JSON.stringify({ device, nome: playerName, personagem: CHARS[charIdx].file, pontos: m, fase });
   if (beacon && navigator.sendBeacon) { navigator.sendBeacon('api/score', new Blob([body], { type: 'application/json' })); return Promise.resolve(null); }
   return api('api/score', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true });
 }
@@ -1152,18 +1164,27 @@ function askName(thenStart) {
   $('#over').hidden = true; $('#rank').hidden = true; $('#menu').hidden = false; $('#hud').hidden = true;
   state = 'menu';
   $('#nameForm').hidden = false; $('#asRow').hidden = true;
-  $('#nomeErr').hidden = !thenStart;
+  if (thenStart) nameErr('Coloque seu nome para aparecer no ranking.'); else $('#nomeErr').hidden = true;
   const inp = $('#nomeIn'); if (playerName) inp.value = playerName; inp.focus();
 }
-function commitName() {
+function nameErr(t) { const el = $('#nomeErr'); el.textContent = t; el.hidden = false; $('#nomeIn').focus(); }
+// saves the typed name if nobody else on the ranking already uses it
+async function commitName() {
   const v = $('#nomeIn').value.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 20);
-  if (!v) return false;
+  if (!v) { nameErr('Coloque seu nome para aparecer no ranking.'); return false; }
+  const btn = $('#nameForm button'); btn.disabled = true;
+  try {
+    const d = await api(`api/nome?nome=${encodeURIComponent(v)}&device=${device}`);
+    if (!d.livre) { nameErr(`Já tem alguém chamado ${v} no ranking. Escolha outro, por exemplo com a inicial do sobrenome.`); return false; }
+  } catch (e) { /* offline: the score call checks the name again */ }
+  finally { btn.disabled = false; }
   playerName = v; store.set('bq_nome', v); $('#nomeErr').hidden = true; refreshWho();
+  if (pendingScore) { const p = pendingScore; pendingScore = null; sendScore(p.m, false, p.fase).catch(() => {}); }
   return true;
 }
-$('#nameForm').addEventListener('submit', e => {
+$('#nameForm').addEventListener('submit', async e => {
   e.preventDefault();
-  if (!commitName()) { $('#nomeErr').hidden = false; $('#nomeIn').focus(); return; }
+  if (!(await commitName())) return;
   if (pendingStart) { pendingStart = false; start(); }
 });
 $('#rename').addEventListener('click', () => askName(false));

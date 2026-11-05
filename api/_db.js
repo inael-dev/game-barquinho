@@ -15,3 +15,15 @@ export async function position(pontos) {
   const [{ pos }] = await sql`SELECT count(*)::int + 1 AS pos FROM barquinho_ranking WHERE pontos > ${pontos}`;
   return pos;
 }
+
+// "Débora", "debora " and "DEBORA" are the same name
+export function nameKey(v) {
+  return cleanName(v).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+// a name belongs to the first device that saved a score with it
+export async function nameTaken(nome, device) {
+  const key = nameKey(nome);
+  const rows = await sql`SELECT nome FROM barquinho_ranking WHERE device_id <> ${device}`;
+  return rows.some(r => nameKey(r.nome) === key);
+}
