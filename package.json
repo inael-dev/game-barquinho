@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "build:html": "sh build.sh",
-    "dev": "sh build.sh && node dev.mjs"
+    "dev": "sh build.sh && node dev.mjs",
+    "dev:ranking": "sh build.sh && RANKING=1 node dev.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0"

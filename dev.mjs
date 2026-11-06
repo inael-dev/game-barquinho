@@ -10,6 +10,9 @@ for (const line of readFileSync('.env.local', 'utf8').split('\n')) {
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.jpg': 'image/jpeg', '.png': 'image/png', '.mp3': 'audio/mpeg', '.json': 'application/json', '.webmanifest': 'application/manifest+json' };
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
+  // by default the local server has no ranking, so no name prompt and no writes to the real database;
+  // start with RANKING=1 to use the API against DATABASE_URL
+  if (url.pathname.startsWith('/api/') && !process.env.RANKING) { res.statusCode = 404; res.end(); return; }
   if (url.pathname.startsWith('/api/')) {
     const name = url.pathname.slice(5).replace(/[^a-z]/g, '');
     let body = '';

@@ -23,7 +23,8 @@ Barquinho de Papel: um jogo de corrida infinita em pixel art. Você escolhe um i
 ```sh
 npm install
 echo 'DATABASE_URL="postgresql://..."' > .env.local
-npm run dev   # http://localhost:3050
+npm run dev           # http://localhost:3050, sem ranking (não grava no banco)
+npm run dev:ranking   # com ranking, usando o DATABASE_URL do .env.local
 ```
 
 Depois de editar o `game.html`, rode `sh build.sh` para atualizar o `index.html`.
