@@ -63,10 +63,8 @@
 
   .keys { display: none; align-self: center; gap: 6px; padding: 5px 8px; background: var(--panel); border: 2px solid var(--paper); box-shadow: 3px 3px 0 var(--ink-2); font-size: 13px; white-space: nowrap; }
   @media (pointer: fine) and (min-width: 760px) { .keys { display: flex; } }
-  .key { display: flex; align-items: center; gap: 4px; padding: 2px 6px; color: rgba(243,234,210,.85); transition: background .1s, color .1s; }
+  .key { display: flex; align-items: center; gap: 4px; padding: 2px 6px; color: rgba(243,234,210,.85); }
   .key kbd { font: inherit; font-weight: 700; min-width: 20px; padding: 1px 5px; text-align: center; color: var(--ink); background: var(--paper); box-shadow: 0 2px 0 #b9ae93; }
-  .key.on { background: var(--amber); color: var(--ink); }
-  .key.on kbd { box-shadow: none; transform: translateY(2px); }
 
   /* overlays */
   .overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 64px 16px 16px; }
@@ -1303,19 +1301,17 @@ window.addEventListener('keydown', e => {
   if (!$('#rank').hidden) return;
   if (k === 'Space' || k === 'ArrowUp' || k === 'KeyW') {
     if (e.repeat) { e.preventDefault(); return; }
-    if (state === 'play') { e.preventDefault(); flashKey(onWater ? 'kJump' : 'kDbl'); jump(); }
+    if (state === 'play') { e.preventDefault(); jump(); }
     else if ((state === 'menu' || state === 'over') && !(document.activeElement && document.activeElement.tagName === 'BUTTON')) { e.preventDefault(); start(); }
   } else if (k === 'ArrowDown' || k === 'KeyS') {
     e.preventDefault();
     if (state === 'play' && !duckHeld) { duckHeld = true; sfx.duck(); if (!onWater) vy = Math.max(vy, 260); }
-    $('#kDuck').classList.add('on');
   } else if (k === 'Enter' && state === 'menu' && document.activeElement === document.body) start();
   else if (state === 'menu' && (k === 'ArrowLeft' || k === 'ArrowRight')) { e.preventDefault(); pick(charIdx + (k === 'ArrowLeft' ? -1 : 1)); }
-  else if (k === 'KeyM') { setMute(!muted); flashKey('kMute'); }
+  else if (k === 'KeyM') setMute(!muted);
 });
-window.addEventListener('keyup', e => { if (e.code === 'ArrowDown' || e.code === 'KeyS') { duckHeld = false; $('#kDuck').classList.remove('on'); } });
-function flashKey(id) { const el = $('#' + id); el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 160); }
-window.addEventListener('blur', () => { duckHeld = false; $('#kDuck').classList.remove('on'); });
+window.addEventListener('keyup', e => { if (e.code === 'ArrowDown' || e.code === 'KeyS') duckHeld = false; });
+window.addEventListener('blur', () => { duckHeld = false; });
 
 /* ---------- boot ---------- */
 let rt = 0;
