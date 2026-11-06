@@ -56,7 +56,8 @@
   .hero-txt small { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #5d6690; }
   .hero-txt b { font-size: 24px; font-weight: 700; line-height: 1; }
   .hero canvas { grid-column: 2; grid-row: 1; width: 60px; height: 66px; margin: 6px; image-rendering: pixelated; align-self: start; background: rgba(43,49,80,.08); border: 1px solid rgba(43,49,80,.25); }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 6px; max-height: 30vh; overflow-y: auto; padding: 2px; }
+  .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-height: 30vh; overflow-y: auto; padding: 2px; }
+  @media (min-width: 520px) { .grid { grid-template-columns: repeat(8, 1fr); } }
   .pick { background: #ece8df; border: 2px solid transparent; padding: 0 0 3px; display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; font: inherit; color: #2b3150; }
   .pick img { width: 100%; aspect-ratio: 132 / 120; object-fit: cover; display: block; }
   .pick span { font-size: 12px; font-weight: 600; }
@@ -304,6 +305,7 @@ const CHARS = [
   ['Regis', 'regis', { hair: 'curlyTop' }],
   ['Sarah', 'sarah', { hair: 'longWavy', glasses: 1 }],
   ['Thais', 'thais', { hair: 'afro', tight: 1 }],
+  ['Victor', 'victor', { hair: 'swept', shades: 1, goatee: 1, guitar: 1 }],
 ].map(([name, file, o]) => ({ name, file, o }));
 function person(o, blink) {
   const c = document.createElement('canvas'); c.width = 14; c.height = 15;
@@ -329,6 +331,8 @@ function person(o, blink) {
   if (o.glasses) { const F = '#56609a'; [[4, 6], [6, 6], [7, 6], [9, 6], [5, 5], [8, 5], [5, 7], [8, 7]].forEach(([x, y]) => put(x, y, F)); }
   if (o.blush) { put(4, 7, BL); put(9, 7, BL); }
   put(6, 8, MO); put(7, 8, MO);
+  if (o.shades) { put(4, 6, '#e8456f'); put(5, 6, '#a63fc4'); put(6, 6, '#56609a'); put(7, 6, '#56609a'); put(8, 6, '#e8456f'); put(9, 6, '#a63fc4'); put(4, 5, '#56609a'); put(9, 5, '#56609a'); }
+  if (o.goatee) { put(6, 9, HAIR); put(7, 9, HAIR); put(5, 7, HL); put(8, 7, HL); }
   // hair in front
   const cap = () => { row(1, 5, 8); row(2, 4, 9); row(3, 3, 10); put(3, 4, HAIR); put(10, 4, HAIR); };
   const longSides = (wavy) => { for (let y = 4; y <= 13; y++) { const w = wavy && (y >> 1) & 1 ? 1 : 0; hp(3 - w, y); hp(10 + w, y); if (y > 5) { hp(2 - w, y); hp(11 + w, y); } } };
@@ -342,7 +346,15 @@ function person(o, blink) {
     case 'curlyTall': row(0, 4, 9); row(1, 3, 10); row(2, 2, 11); row(3, 2, 11); [3, 10].forEach(x => hp(x, 4)); break;
     case 'curlyTop': row(0, 5, 8); row(1, 3, 10); row(2, 3, 10); row(3, 3, 10); put(3, 4, HL); put(10, 4, HL); put(3, 5, HL); put(10, 5, HL); break;
     case 'wavyTop': row(0, 6, 9); row(1, 4, 10); row(2, 3, 11); row(3, 3, 10); put(3, 4, HL); put(10, 4, HL); put(3, 5, HL); put(10, 5, HL); break;
+    case 'swept': row(0, 4, 9); row(1, 3, 10); row(2, 2, 11); row(3, 2, 11); for (let y = 4; y <= 7; y++) { hp(2, y); hp(3, y); hp(10, y); hp(11, y); } row(1, 5, 8, (x, y) => put(x, y, HL)); break;
     default: row(3, 2, 11); [2, 3, 10, 11].forEach(x => hp(x, 4)); [2, 11].forEach(x => { hp(x, 5); hp(x, 6); });
+  }
+  if (o.guitar) {
+    const WD = '#a5683e', WL = '#d39a5f', NK = '#4a3527';
+    [[3, 11], [4, 11], [5, 11], [3, 12], [4, 12], [5, 12], [6, 12]].forEach(([x, y]) => put(x, y, WD));
+    put(4, 11, WL); put(5, 12, NK);
+    for (let i = 0; i < 6; i++) put(7 + i, 12 - i, NK);
+    put(13, 6, NK); put(13, 5, NK); put(12, 5, WL); put(13, 4, WL);
   }
   return c;
 }
@@ -1279,8 +1291,8 @@ resize(); pick(charIdx); setMute(muted);
 if (god) { start(); let m = 0; for (let i = 0; i < (+qs.get('fase') || 1) - 1; i++) m += stg(i).len; dist = (m + 30) * 8; stageNo = prevStage = stageAt(meters()); showStage(); banner(stageNo);
   if (qs.has('obs')) { for (let i = 0; i < 4; i++) spawn(); obs.forEach((o, i) => { o.x = W * 0.4 + i * 45; o.fly = 0; }); } }
 if (qs.has('crew')) { // test sheet of every pixel figure
-  const c = document.createElement('canvas'); c.width = 7 * 22; c.height = 2 * 24; const g = c.getContext('2d');
-  CHARS.forEach((ch, i) => { drawCrew(cc, ch, 0, 0); g.drawImage(comp, (i % 7) * 22, (i / 7 | 0) * 24); });
+  const c = document.createElement('canvas'); c.width = 8 * 22; c.height = 2 * 24; const g = c.getContext('2d');
+  CHARS.forEach((ch, i) => { drawCrew(cc, ch, 0, 0); g.drawImage(comp, (i % 8) * 22, (i / 8 | 0) * 24); });
   c.style.cssText = 'position:fixed;inset:0;width:100%;image-rendering:pixelated;background:#7cc0c8;z-index:9'; document.body.appendChild(c);
 }
 let last = performance.now();

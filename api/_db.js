@@ -3,7 +3,7 @@ import { neon } from '@neondatabase/serverless';
 export const sql = neon(process.env.DATABASE_URL);
 
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-export const PERSONAGENS = new Set(['adila', 'bequi', 'breno', 'davi', 'debora', 'iago', 'ingrid', 'jael', 'levi', 'milena', 'najla', 'regis', 'sarah', 'thais']);
+export const PERSONAGENS = new Set(['adila', 'bequi', 'breno', 'davi', 'debora', 'iago', 'ingrid', 'jael', 'levi', 'milena', 'najla', 'regis', 'sarah', 'thais', 'victor']);
 // top speed is ~25 m/s, so anything above this is not a real run
 export const MAX_PONTOS = 50000;
 

@@ -1,6 +1,6 @@
 // offline cache for the installed game; the ranking API always goes to the network
-const CACHE = 'barquinho-v1';
-const CORE = ['/', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png',   "/img/adila-face.jpg",   "/img/adila.jpg",   "/img/bequi-face.jpg",   "/img/bequi.jpg",   "/img/breno-face.jpg",   "/img/breno.jpg",   "/img/davi-face.jpg",   "/img/davi.jpg",   "/img/debora-face.jpg",   "/img/debora.jpg",   "/img/grupo.png",   "/img/iago-face.jpg",   "/img/iago.jpg",   "/img/ingrid-face.jpg",   "/img/ingrid.jpg",   "/img/jael-face.jpg",   "/img/jael.jpg",   "/img/levi-face.jpg",   "/img/levi.jpg",   "/img/milena-face.jpg",   "/img/milena.jpg",   "/img/najla-face.jpg",   "/img/najla.jpg",   "/img/regis-face.jpg",   "/img/regis.jpg",   "/img/sarah-face.jpg",   "/img/sarah.jpg",   "/img/thais-face.jpg",   "/img/thais.jpg", ];
+const CACHE = 'barquinho-v2';
+const CORE = ['/', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', "/img/adila-face.jpg", "/img/adila.jpg", "/img/bequi-face.jpg", "/img/bequi.jpg", "/img/breno-face.jpg", "/img/breno.jpg", "/img/davi-face.jpg", "/img/davi.jpg", "/img/debora-face.jpg", "/img/debora.jpg", "/img/grupo.png", "/img/iago-face.jpg", "/img/iago.jpg", "/img/ingrid-face.jpg", "/img/ingrid.jpg", "/img/jael-face.jpg", "/img/jael.jpg", "/img/levi-face.jpg", "/img/levi.jpg", "/img/milena-face.jpg", "/img/milena.jpg", "/img/najla-face.jpg", "/img/najla.jpg", "/img/regis-face.jpg", "/img/regis.jpg", "/img/sarah-face.jpg", "/img/sarah.jpg", "/img/thais-face.jpg", "/img/thais.jpg", "/img/victor-face.jpg", "/img/victor.jpg"];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
